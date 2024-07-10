@@ -56,8 +56,10 @@ export function defineCachedFunction<T, ArgsT extends unknown[] = any[]>(
       .join(":")
       .replace(/:\/$/, ":index");
 
-    let entry: CacheEntry<T> =
-      ((await useStorage().getItem(cacheKey)) as unknown) || {};
+    const cacheKeyMeta = cacheKey + '.meta'
+
+    const storage = useStorage()
+    let entry: CacheEntry<T> = await Promise.all([storage.getItem(cacheKeyMeta), storage.getItemRaw(cacheKey)]).then(([meta, value]) => ({ ...(meta as object), value })) || {}
 
     // https://github.com/unjs/nitro/issues/2160
     if (typeof entry !== "object") {
@@ -112,8 +114,8 @@ export function defineCachedFunction<T, ArgsT extends unknown[] = any[]>(
         entry.integrity = integrity;
         delete pending[key];
         if (validate(entry) !== false) {
-          const promise = useStorage()
-            .setItem(cacheKey, entry)
+          const { value, ...meta } = entry
+          const promise = Promise.all([storage.setItem(cacheKeyMeta, meta), storage.setItemRaw(cacheKey, value)])
             .catch((error) => {
               console.error(`[nitro] [cache] Cache write error.`, error);
               useNitroApp().captureError(error, { event, tags: ["cache"] });
@@ -137,6 +139,15 @@ export function defineCachedFunction<T, ArgsT extends unknown[] = any[]>(
       _resolvePromise.catch((error) => {
         console.error(`[nitro] [cache] SWR handler error.`, error);
         useNitroApp().captureError(error, { event, tags: ["cache"] });
+
+        const promise = Promise.all([storage.removeItem(cacheKeyMeta), storage.removeItem(cacheKey)])
+        .catch((error) => {
+          console.error(`[nitro] [cache] Cache write error.`, error);
+          useNitroApp().captureError(error, { event, tags: ["cache"] });
+        });
+        if (event?.waitUntil) {
+          event.waitUntil(promise);
+        }
       });
       return entry;
     }
