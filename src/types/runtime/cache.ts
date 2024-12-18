@@ -23,6 +23,8 @@ export interface CacheOptions<T = any, ArgsT extends unknown[] = any[]> {
   swr?: boolean;
   staleMaxAge?: number;
   base?: string;
+  saveEntry?: (cacheKey: string, entry?: CacheEntry<T>) => Promise<void>;
+  loadEntry?: (cacheKey: string) => Promise<CacheEntry<T>>;
 }
 
 export interface ResponseCacheEntry<T = any> {
