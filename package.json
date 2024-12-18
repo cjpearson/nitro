@@ -99,6 +99,7 @@
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.4",
+    "@msgpack/msgpack": "3.0.0-beta2",
     "@netlify/functions": "^2.8.2",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-commonjs": "^28.0.1",

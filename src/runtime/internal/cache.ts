@@ -20,8 +20,9 @@ import { hash } from "ohash";
 import { parseURL } from "ufo";
 import { useNitroApp } from "./app";
 import { useStorage } from "./storage";
-import { buffer } from "node:stream/consumers";
-import { ReadableStream } from "node:stream/web";
+// import { buffer } from "node:stream/consumers";
+// import { ReadableStream } from "node:stream/web";
+import { encode, decode } from "@msgpack/msgpack";
 
 function defaultCacheOptions() {
   return {
@@ -49,15 +50,13 @@ async function getResponseCacheEntry<T>(
   cacheKey: string
 ): Promise<CacheEntry<ResponseCacheEntry<T>>> {
   const storage = useStorage();
-  const cacheKeyMeta = cacheKey + ".meta";
-  const [meta, body] = await Promise.all([
-    storage.getItem(cacheKeyMeta),
-    storage.getItemRaw(cacheKey),
-  ]);
-  if (!meta || typeof meta !== "object") {
-    return {};
+
+  const item = await storage.getItemRaw(cacheKey)
+  if (!item) {
+    return {}
   }
-  return { ...meta, value: { ...(meta as CacheEntry).value, body } };
+
+  return decode(item) as CacheEntry<ResponseCacheEntry<T>>
 }
 
 async function setResponseCacheEntry<T>(
@@ -65,30 +64,13 @@ async function setResponseCacheEntry<T>(
   entry?: CacheEntry<ResponseCacheEntry<T>>
 ): Promise<void> {
   const storage = useStorage();
-  const cacheKeyMeta = cacheKey + ".meta";
 
   if (!entry || !entry.value) {
-    await Promise.all([
-      storage.removeItem(cacheKey),
-      storage.removeItem(cacheKeyMeta),
-    ]);
+    await storage.removeItem(cacheKey)
     return;
   }
 
-  const { value, ...meta } = entry;
-  const { body, ...val } = value;
-
-  // let bodyToSave = body;
-  // if (entry.value.body instanceof ReadableStream) {
-  //   const streams = entry.value.body.tee();
-  //   entry.value.body = streams[0] as T;
-  //   bodyToSave = (await buffer(streams[1])) as T;
-  // }
-
-  await Promise.all([
-    storage.setItem(cacheKeyMeta, { ...meta, value: val }),
-    storage.setItemRaw(cacheKey, body),
-  ]);
+  await storage.setItemRaw(cacheKey, encode(entry))
 }
 
 export function defineCachedFunction<T, ArgsT extends unknown[] = any[]>(
