@@ -50,13 +50,14 @@ async function getResponseCacheEntry<T>(
   cacheKey: string
 ): Promise<CacheEntry<ResponseCacheEntry<T>>> {
   const storage = useStorage();
+  const { driver } = storage.getMount(cacheKey);
 
   const item = await storage.getItemRaw(cacheKey)
   if (!item) {
     return {}
   }
 
-  return decode(item) as CacheEntry<ResponseCacheEntry<T>>
+  return driver.name === 'memory' ? item : decode(item) as CacheEntry<ResponseCacheEntry<T>>;
 }
 
 async function setResponseCacheEntry<T>(
@@ -64,13 +65,14 @@ async function setResponseCacheEntry<T>(
   entry?: CacheEntry<ResponseCacheEntry<T>>
 ): Promise<void> {
   const storage = useStorage();
+  const { driver } = storage.getMount(cacheKey);
 
   if (!entry || !entry.value) {
     await storage.removeItem(cacheKey)
     return;
   }
 
-  await storage.setItemRaw(cacheKey, encode(entry))
+  await storage.setItemRaw(cacheKey, driver.name === 'memory' ? entry : encode(entry))
 }
 
 export function defineCachedFunction<T, ArgsT extends unknown[] = any[]>(
