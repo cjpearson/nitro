@@ -22,7 +22,7 @@ import { useNitroApp } from "./app";
 import { useStorage } from "./storage";
 // import { buffer } from "node:stream/consumers";
 // import { ReadableStream } from "node:stream/web";
-import { encode, decode } from "@msgpack/msgpack";
+import { encode, decode } from 'msgpackr';
 
 function defaultCacheOptions() {
   return {

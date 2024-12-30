@@ -99,7 +99,6 @@
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.4",
-    "@msgpack/msgpack": "3.0.0-beta2",
     "@netlify/functions": "^2.8.2",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-commonjs": "^28.0.1",
@@ -144,6 +143,7 @@
     "mime": "^4.0.4",
     "mlly": "^1.7.2",
     "mri": "^1.2.0",
+    "msgpackr": "^1.11.2",
     "node-fetch-native": "^1.6.4",
     "ofetch": "^1.4.1",
     "ohash": "^1.1.4",
