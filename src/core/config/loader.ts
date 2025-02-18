@@ -11,8 +11,8 @@ import type {
 
 import { NitroDefaults } from "./defaults";
 
-import { resolveAssetsOptions } from "./resolvers/assets";
 // Resolvers
+import { resolveAssetsOptions } from "./resolvers/assets";
 import {
   fallbackCompatibilityDate,
   resolveCompatibilityOptions,
@@ -25,7 +25,9 @@ import { resolveOpenAPIOptions } from "./resolvers/open-api";
 import { resolvePathOptions } from "./resolvers/paths";
 import { resolveRouteRulesOptions } from "./resolvers/route-rules";
 import { resolveRuntimeConfigOptions } from "./resolvers/runtime-config";
+import { resolveStorageOptions } from "./resolvers/storage";
 import { resolveURLOptions } from "./resolvers/url";
+import { resolveErrorOptions } from "./resolvers/error";
 
 const configResolvers = [
   resolveCompatibilityOptions,
@@ -39,6 +41,8 @@ const configResolvers = [
   resolveOpenAPIOptions,
   resolveURLOptions,
   resolveAssetsOptions,
+  resolveStorageOptions,
+  resolveErrorOptions,
 ] as const;
 
 export async function loadOptions(
@@ -98,11 +102,13 @@ async function _loadUserConfig(
       preset: presetOverride,
     },
     async defaultConfig({ configs }) {
+      const getConf = <K extends keyof NitroConfig>(key: K) =>
+        (configs.main?.[key] ??
+          configs.rc?.[key] ??
+          configs.packageJson?.[key]) as NitroConfig[K];
+
       if (!compatibilityDate) {
-        compatibilityDate =
-          configs.main?.compatibilityDate ||
-          configs.rc?.compatibilityDate ||
-          configs.packageJson?.compatibilityDate;
+        compatibilityDate = getConf("compatibilityDate");
       }
       const framework = configs.overrides?.framework || configs.main?.framework;
       return {
@@ -110,12 +116,14 @@ async function _loadUserConfig(
           generateRuntimeConfigTypes:
             !framework?.name || framework.name === "nitro",
         },
-        preset: (
-          await resolvePreset("" /* auto detect */, {
-            static: configOverrides.static,
-            compatibilityDate: compatibilityDate || fallbackCompatibilityDate,
-          })
-        )?._meta?.name,
+        preset:
+          presetOverride ||
+          (
+            await resolvePreset("" /* auto detect */, {
+              static: getConf("static"),
+              compatibilityDate: compatibilityDate || fallbackCompatibilityDate,
+            })
+          )?._meta?.name,
       };
     },
     defaults: NitroDefaults,
@@ -132,7 +140,7 @@ async function _loadUserConfig(
       });
       if (preset) {
         return {
-          config: preset,
+          config: klona(preset),
         };
       }
     },

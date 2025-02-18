@@ -9,9 +9,9 @@ import wsAdapter from "crossws/adapters/deno";
 import destr from "destr";
 
 // TODO: Declare conflict with crossws
-// declare global {
-// const Deno: typeof import("@deno/types").Deno;
-// }
+declare global {
+  const Deno: typeof import("@deno/types").Deno;
+}
 
 const nitroApp = useNitroApp();
 
@@ -44,7 +44,7 @@ const serveOptions: _Deno.ServeOptions & Partial<_Deno.ServeTlsOptions> = {
   },
 };
 
-// https://github.com/unjs/nitro/pull/2373
+// https://github.com/nitrojs/nitro/pull/2373
 if (!serveOptions.key || !serveOptions.cert) {
   delete serveOptions.key;
   delete serveOptions.cert;

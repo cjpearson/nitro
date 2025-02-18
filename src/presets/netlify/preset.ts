@@ -1,11 +1,13 @@
 import { promises as fsp } from "node:fs";
 import { defineNitroPreset } from "nitropack/kit";
 import type { Nitro } from "nitropack/types";
+import { joinURL } from "ufo";
 import { dirname, join } from "pathe";
 import netlifyLegacyPresets from "./legacy/preset";
 import {
   generateNetlifyFunction,
   getGeneratorString,
+  getStaticPaths,
   writeHeaders,
   writeRedirects,
 } from "./utils";
@@ -18,7 +20,7 @@ const netlify = defineNitroPreset(
     entry: "./runtime/netlify",
     output: {
       dir: "{{ rootDir }}/.netlify/functions-internal",
-      publicDir: "{{ rootDir }}/dist",
+      publicDir: "{{ rootDir }}/dist/{{ baseURL }}",
     },
     rollupConfig: {
       output: {
@@ -66,7 +68,7 @@ const netlifyEdge = defineNitroPreset(
     exportConditions: ["netlify"],
     output: {
       serverDir: "{{ rootDir }}/.netlify/edge-functions/server",
-      publicDir: "{{ rootDir }}/dist",
+      publicDir: "{{ rootDir }}/dist/{{ baseURL }}",
     },
     rollupConfig: {
       output: {
@@ -85,6 +87,10 @@ const netlifyEdge = defineNitroPreset(
           functions: [
             {
               path: "/*",
+              excludedPath: getStaticPaths(
+                nitro.options.publicAssets,
+                nitro.options.baseURL
+              ),
               name: "edge server handler",
               function: "server",
               generator: getGeneratorString(nitro),
@@ -112,7 +118,7 @@ const netlifyStatic = defineNitroPreset(
     extends: "static",
     output: {
       dir: "{{ rootDir }}/dist",
-      publicDir: "{{ rootDir }}/dist",
+      publicDir: "{{ rootDir }}/dist/{{ baseURL }}",
     },
     commands: {
       preview: "npx serve ./",

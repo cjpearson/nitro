@@ -126,25 +126,25 @@ export interface NitroOptions extends PresetOptions {
     /**
      * Allow env expansion in runtime config
      *
-     * @see https://github.com/unjs/nitro/pull/2043
+     * @see https://github.com/nitrojs/nitro/pull/2043
      */
     envExpansion?: boolean;
     /**
      * Enable experimental WebSocket support
      *
-     * @see https://nitro.unjs.io/guide/websocket
+     * @see https://nitro.build/guide/websocket
      */
     websocket?: boolean;
     /**
      * Enable experimental Database support
      *
-     * @see https://nitro.unjs.io/guide/database
+     * @see https://nitro.build/guide/database
      */
     database?: boolean;
     /**
      * Enable experimental Tasks support
      *
-     * @see https://nitro.unjs.io/guide/tasks
+     * @see https://nitro.build/guide/tasks
      */
     tasks?: boolean;
   };
@@ -181,7 +181,7 @@ export interface NitroOptions extends PresetOptions {
   handlers: NitroEventHandler[];
   routeRules: { [path: string]: NitroRouteRules };
   devHandlers: NitroDevEventHandler[];
-  errorHandler: string;
+  errorHandler: string | string[];
   devErrorHandler: NitroErrorHandler;
   prerender: {
     /**
@@ -309,6 +309,7 @@ export interface CompressOptions {
 // Server assets
 export interface ServerAssetDir {
   baseName: string;
+  pattern?: string;
   dir: string;
   ignore?: string[];
 }
